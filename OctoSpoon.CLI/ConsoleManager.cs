@@ -3,7 +3,7 @@ static class ConsoleManager
     public static string Request(string? printText = null)
     {
         if (printText != null)
-            Console.WriteLine(printText);
+            Console.WriteLine("\n" + printText);
 
         string? text = null;
 
@@ -24,6 +24,8 @@ static class ConsoleManager
         {
             Console.WriteLine($"{i + 1} {selector[i]}");
         }
+
+        Console.Write("\n> ");
 
         int selected;
         string text;

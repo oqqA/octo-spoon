@@ -17,6 +17,13 @@ namespace OctoSpoon.CLI
             httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
         }
 
+        public async Task<JsonObject?> GraphqlRequest(StringContent requereJson)
+        {
+            var response = await httpClient.PostAsync("", requereJson);
+            var responseJson = await response.Content.ReadAsStreamAsync();
+            return JsonSerializer.Deserialize<JsonObject>(responseJson);
+        }
+
         public async Task<List<Discussion>?> GetDiscussions(string author, string nameRepo)
         {
             var queryBuilder = new QueryBuilder
@@ -36,23 +43,20 @@ namespace OctoSpoon.CLI
                 ",
                 Variables = new
                 {
-                    owner = "cleannetcode",
-                    name = "Index"
+                    owner = author,
+                    name = nameRepo
                 }
             };
 
-            var requereJson = queryBuilder.GetJson();
-            var response = await httpClient.PostAsync("", requereJson);
-            var responseJson = await response.Content.ReadAsStreamAsync();
-            var graphqlResponse = JsonSerializer.Deserialize<JsonObject>(responseJson);
+            var graphqlResponse = await GraphqlRequest(queryBuilder.GetJson());
 
-            var node = graphqlResponse["data"]["repository"]["discussions"]["nodes"];
-            var data = node.ToJsonString();
+            var node = graphqlResponse?["data"]?["repository"]?["discussions"]?["nodes"];
+            var data = node?.ToJsonString();
 
             return JsonSerializer.Deserialize<List<Discussion>>(data);
         }
 
-        public async Task<List<CommentNode>?> GetDiscussions(string author, string nameRepo, int number)
+        public async Task<List<CommentNode>?> GetComments(string author, string nameRepo, int number)
         {
             var queryBuilder = new QueryBuilder
             {
@@ -76,25 +80,53 @@ namespace OctoSpoon.CLI
                 ",
                 Variables = new
                 {
-                    owner = "cleannetcode",
-                    name = "Index",
+                    owner = author,
+                    name = nameRepo,
                     number = number
                 }
             };
 
-            var requereJson = queryBuilder.GetJson();
-            var response = await httpClient.PostAsync("", requereJson);
-            var responseJson = await response.Content.ReadAsStreamAsync();
-            var graphqlResponse = JsonSerializer.Deserialize<JsonObject>(responseJson);
+            var graphqlResponse = await GraphqlRequest(queryBuilder.GetJson());
 
             var node = graphqlResponse["data"]["repository"]["discussion"]["comments"]["nodes"];
-            var data = node.ToJsonString();
+            var data = node?.ToJsonString();
 
             return JsonSerializer.Deserialize<List<CommentNode>>(data);
         }
 
+        public async Task<List<Repository>?> GetRepositories(string author)
+        {
+            var queryBuilder = new QueryBuilder
+            {
+                Query = @"
+                    query {
+                        repositoryOwner(login: $owner) {
+                        
+                            repositories(first: 100) {
+                                totalCount
+                                
+                                nodes {
+                                    name
+                                    description
+                                }
+                            }
+                        }
+                    }
+                ",
+                Variables = new
+                {
+                    owner = author,
+                }
+            };
+
+            var graphqlResponse = await GraphqlRequest(queryBuilder.GetJson());
+
+            var node = graphqlResponse["data"]["repositoryOwner"]["repositories"]["nodes"];
+            var data = node?.ToJsonString();
+
+            return JsonSerializer.Deserialize<List<Repository>>(data);
+        }
 
     }
-
 
 }

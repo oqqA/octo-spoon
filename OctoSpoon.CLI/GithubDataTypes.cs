@@ -15,3 +15,8 @@ public class Author
     public string? login { get; set; }
 }
 
+public class Repository
+{
+    public string? name { get; set; }
+    public string? description { get; set; }
+}
