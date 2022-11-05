@@ -31,7 +31,15 @@ namespace OctoSpoon.CLI
             var selectorComments = comments.Select(p => p.body);
             // ConsoleManager.SelectorRequest(selectorComments.ToArray(), "Please select comments:");
 
-            Console.WriteLine("Goodbye, World!");
+            var randomCount = ConsoleManager.RequestNumber(comments.Count, $"Found {comments.Count} comments, please input count random comments you need:");
+            var takenComments = comments.OrderBy(x => new Random().Next()).Take(randomCount);
+
+            foreach (var node in takenComments)
+            {
+                Console.WriteLine($"\n---> Author: {node.author.login} \r\n\n {node.body}");
+            }
+
+            Console.WriteLine("\nGoodbye, World!");
         }
     }
 }

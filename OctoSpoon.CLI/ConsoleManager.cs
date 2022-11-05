@@ -15,10 +15,27 @@ static class ConsoleManager
         return text;
     }
 
+    public static int RequestNumber(int maxNum, string? printText = null)
+    {
+        if (printText != null)
+            Console.WriteLine("\n" + printText);
+
+        Console.Write("\n> ");
+
+        int selected;
+        string text;
+        do
+        {
+            text = Request();
+        } while (!(int.TryParse(text, out selected) && selected > 0 && selected <= maxNum));
+
+        return selected;
+    }
+
     public static int SelectorRequest(string[] selector, string? printText = null)
     {
         if (printText != null)
-            Console.WriteLine(printText);
+            Console.WriteLine("\n" + printText);
 
         for (var i = 0; i < selector.Length; i++)
         {
