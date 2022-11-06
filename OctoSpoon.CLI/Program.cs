@@ -1,4 +1,5 @@
 ﻿using dotenv.net;
+using System.Text;
 
 namespace OctoSpoon.CLI
 {
@@ -6,6 +7,9 @@ namespace OctoSpoon.CLI
     {
         private static async Task Main(string[] args)
         {
+            Console.InputEncoding = Encoding.Unicode;
+            Console.OutputEncoding = Encoding.Unicode;
+
             DotEnv.Load();
             var envVars = DotEnv.Read();
             var token = envVars["TOKEN"];
