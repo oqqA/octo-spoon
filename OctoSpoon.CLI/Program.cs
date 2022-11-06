@@ -28,18 +28,20 @@ namespace OctoSpoon.CLI
                 settingsRepository.Save(settings);
             }
 
-            // todo: print last cache 
+            // todo: print last activity 
 
             var githubRepository = new GithubRepository(settings.Token);
-            // <>
-            var temprepositoriess = await githubRepository.GetRepositories("githubaefq23243tf324rgfd");
-            // <>
 
-            var author = ConsoleManager.Request("Please input author:");
-            // todo: checkAuthor()
+            string? author;
+            List<Repository>? repositories;
+            do
+            {
+                author = ConsoleManager.Request("Please input author:");
+                repositories = await githubRepository.GetRepositories(author);
+            } while (repositories == null || repositories.Count == 0);
 
-            var repositories = await githubRepository.GetRepositories(author);
-            var selectorRepositories = repositories?.Select(p => p.name + ((p.description != null) ? " - " + p.description : ""));
+            var repositoriesOrderBy = repositories.OrderByDescending(x => DateTime.Parse(x.updatedAt));
+            var selectorRepositories = repositoriesOrderBy?.Select(p => p.name + ((p.description != null) ? " - " + p.description : ""));
             var indexRepository = ConsoleManager.SelectorRequest(selectorRepositories.ToArray(), "Please select repositories:");
 
 
@@ -66,7 +68,7 @@ namespace OctoSpoon.CLI
 
             foreach (var node in takenComments)
             {
-                Console.WriteLine($"\n---> Author: {node.author.login} \r\n\n {node.body}");
+                Console.WriteLine($"\n---> Author: {node.author.login} \r\n\n {node.body.Trim()}");
             }
 
             Console.WriteLine("\nGoodbye, World!");

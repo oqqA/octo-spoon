@@ -118,6 +118,7 @@ namespace OctoSpoon.CLI
                                 nodes {
                                     name
                                     description
+                                    updatedAt
                                 }
                             }
                         }
