@@ -34,10 +34,12 @@ static class ConsoleManager
 
     public static int SelectorRequest(string[] selector, string? printText = null)
     {
+        var maxIndex = selector.Length > 5 ? 5 : selector.Length;
+
         if (printText != null)
             Console.WriteLine("\n" + printText);
 
-        for (var i = 0; i < selector.Length; i++)
+        for (var i = 0; i < maxIndex; i++)
         {
             Console.WriteLine($"{i + 1} {selector[i]}");
         }
@@ -47,7 +49,7 @@ static class ConsoleManager
         do
         {
             text = Request();
-        } while (!(int.TryParse(text, out selected) && selected > 0 && selected <= selector.Length));
+        } while (!(int.TryParse(text, out selected) && selected > 0 && selected <= maxIndex));
 
         return selected - 1;
     }

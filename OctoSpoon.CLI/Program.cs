@@ -45,19 +45,19 @@ namespace OctoSpoon.CLI
             var indexRepository = ConsoleManager.SelectorRequest(selectorRepositories.ToArray(), "Please select repositories:");
 
 
-            var discussions = await githubRepository.GetDiscussions(author, repositories[indexRepository].name);
+            var discussions = await githubRepository.GetDiscussions(author, repositoriesOrderBy.ToList()[indexRepository].name);
             var selectorDiscussions = discussions?.Select(p => p.title);
             var selectedIndex = ConsoleManager.SelectorRequest(selectorDiscussions.ToArray(), "Please select discussion:");
 
 
-            var comments = await githubRepository.GetComments(author, repositories[indexRepository].name, discussions[selectedIndex].number);
+            var comments = await githubRepository.GetComments(author, repositoriesOrderBy.ToList()[indexRepository].name, discussions[selectedIndex].number);
             var selectorComments = comments.Select(p => p.body);
             // ConsoleManager.SelectorRequest(selectorComments.ToArray(), "Please select comments:");
 
             var cache = new CachePathDuscussion()
             {
                 Author = author,
-                RepositoryName = repositories[indexRepository].name,
+                RepositoryName = repositoriesOrderBy.ToList()[indexRepository].name,
                 DiscussionNumber = discussions[selectedIndex].number
             };
             settings.CachePathsToDiscussions.Add(cache);
