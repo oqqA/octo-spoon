@@ -1,16 +1,6 @@
 # octo-spoon
 
-Консольная программа позволяет вытаскивать список случайных комментов из секции дискуссий в гитхаб.
-
-(в файл .env нужен токен из Settings -> Developer settings -> Personal access tokens)
+Консольная программа позволяет вытаскивать список случайных комментов из секции дискуссии в гитхаб используя GraphQL
 
 ### example
-![kekw12](https://user-images.githubusercontent.com/33149233/200137386-56bc3208-eeea-4537-ad0f-bef38bb48761.gif)
-
-
-### todo:
-- в селекторе groupby по дате создания
-- последняя активность
-- обрабатывать null
-- добавить using
-- добавить тесты
+![kekw](https://user-images.githubusercontent.com/33149233/200190187-2d58e3a3-6f5d-4d6c-a0b8-5f5b4f58c891.gif)
