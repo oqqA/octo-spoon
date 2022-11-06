@@ -50,10 +50,15 @@ namespace OctoSpoon.CLI
 
             var graphqlResponse = await GraphqlRequest(queryBuilder.GetJson());
 
-            var node = graphqlResponse?["data"]?["repository"]?["discussions"]?["nodes"];
-            var data = node?.ToJsonString();
+            if (graphqlResponse.Count == 2)
+                return null; // string? error = graphqlResponse["message"].GetValue<string>();
 
-            return JsonSerializer.Deserialize<List<Discussion>>(data);
+            var node = graphqlResponse?["data"]?["repository"]?["discussions"]?["nodes"];
+
+            if (node == null)
+                return null;
+
+            return JsonSerializer.Deserialize<List<Discussion>>(node?.ToJsonString());
         }
 
         public async Task<List<CommentNode>?> GetComments(string author, string nameRepo, int number)
@@ -88,10 +93,15 @@ namespace OctoSpoon.CLI
 
             var graphqlResponse = await GraphqlRequest(queryBuilder.GetJson());
 
-            var node = graphqlResponse["data"]["repository"]["discussion"]["comments"]["nodes"];
-            var data = node?.ToJsonString();
+            if (graphqlResponse.Count == 2)
+                return null; // string? error = graphqlResponse["message"].GetValue<string>();
 
-            return JsonSerializer.Deserialize<List<CommentNode>>(data);
+            var node = graphqlResponse?["data"]?["repository"]?["discussion"]?["comments"]?["nodes"];
+
+            if (node == null)
+                return null;
+
+            return JsonSerializer.Deserialize<List<CommentNode>>(node?.ToJsonString());
         }
 
         public async Task<List<Repository>?> GetRepositories(string author)
@@ -121,10 +131,15 @@ namespace OctoSpoon.CLI
 
             var graphqlResponse = await GraphqlRequest(queryBuilder.GetJson());
 
-            var node = graphqlResponse["data"]["repositoryOwner"]["repositories"]["nodes"];
-            var data = node?.ToJsonString();
+            if (graphqlResponse.Count == 2)
+                return null; // string? error = graphqlResponse["message"].GetValue<string>();
 
-            return JsonSerializer.Deserialize<List<Repository>>(data);
+            var node = graphqlResponse["data"]?["repositoryOwner"]?["repositories"]?["nodes"];
+
+            if (node == null)
+                return null;
+
+            return JsonSerializer.Deserialize<List<Repository>>(node?.ToJsonString());
         }
 
     }

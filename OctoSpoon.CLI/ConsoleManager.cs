@@ -5,6 +5,8 @@ static class ConsoleManager
         if (printText != null)
             Console.WriteLine("\n" + printText);
 
+        Console.Write("\r\n> ");
+
         string? text = null;
 
         do
@@ -19,8 +21,6 @@ static class ConsoleManager
     {
         if (printText != null)
             Console.WriteLine("\n" + printText);
-
-        Console.Write("\n> ");
 
         int selected;
         string text;
@@ -41,8 +41,6 @@ static class ConsoleManager
         {
             Console.WriteLine($"{i + 1} {selector[i]}");
         }
-
-        Console.Write("\n> ");
 
         int selected;
         string text;

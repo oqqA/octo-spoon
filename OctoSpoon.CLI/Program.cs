@@ -1,5 +1,4 @@
-﻿using dotenv.net;
-using System.Text;
+﻿using System.Text;
 
 namespace OctoSpoon.CLI
 {
@@ -10,13 +9,31 @@ namespace OctoSpoon.CLI
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            DotEnv.Load();
-            var envVars = DotEnv.Read();
-            var token = envVars["TOKEN"];
-            // var token = ConsoleManager.Request("Please input github token (Settings -> Developer settings -> Personal access tokens):"); // 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
-            // todo: checkToken()
+            var settingsRepository = new SettingsRepository();
+            var settings = settingsRepository.Get();
 
-            var githubRepository = new GithubRepository(token);
+            if (settings.Token == null || !await isTokenValid(settings.Token))
+            {
+                do
+                {
+                    settings.Token = ConsoleManager.Request("Please create and input github token:\r\n---> https://github.com/settings/tokens \r\n(Select access -> read:discussion)");
+
+                    if (await isTokenValid(settings.Token))
+                        break;
+                    else
+                        Console.WriteLine("\nERROR: Bad token");
+
+                } while (true);
+
+                settingsRepository.Save(settings);
+            }
+
+            // todo: print last cache 
+
+            var githubRepository = new GithubRepository(settings.Token);
+            // <>
+            var temprepositoriess = await githubRepository.GetRepositories("githubaefq23243tf324rgfd");
+            // <>
 
             var author = ConsoleManager.Request("Please input author:");
             // todo: checkAuthor()
@@ -35,6 +52,15 @@ namespace OctoSpoon.CLI
             var selectorComments = comments.Select(p => p.body);
             // ConsoleManager.SelectorRequest(selectorComments.ToArray(), "Please select comments:");
 
+            var cache = new CachePathDuscussion()
+            {
+                Author = author,
+                RepositoryName = repositories[indexRepository].name,
+                DiscussionNumber = discussions[selectedIndex].number
+            };
+            settings.CachePathsToDiscussions.Add(cache);
+            settingsRepository.Save(settings);
+
             var randomCount = ConsoleManager.RequestNumber(comments.Count, $"Found {comments.Count} comments, please input count random comments you need:");
             var takenComments = comments.OrderBy(x => new Random().Next()).Take(randomCount);
 
@@ -44,6 +70,13 @@ namespace OctoSpoon.CLI
             }
 
             Console.WriteLine("\nGoodbye, World!");
+        }
+
+        public static async Task<bool> isTokenValid(string token)
+        {
+            var tempGithubRepository = new GithubRepository(token);
+            var tempRepositories = await tempGithubRepository.GetRepositories("github");
+            return tempRepositories != null;
         }
     }
 }
