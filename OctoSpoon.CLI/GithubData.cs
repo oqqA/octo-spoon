@@ -1,23 +1,37 @@
+using System.Text.Json.Serialization;
+
+namespace OctoSpoon.CLI;
 public class Discussion
 {
-    public int number { get; set; }
-    public string? title { get; set; }
+    [JsonPropertyName("number")]
+    public int Number { get; set; }
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
 }
 
 public class CommentNode
 {
-    public Author author { get; set; }
-    public string? body { get; set; }
+    [JsonPropertyName("author")]
+    public Author? Author { get; set; }
+
+    [JsonPropertyName("body")]
+    public string? Body { get; set; }
 }
 
 public class Author
 {
-    public string? login { get; set; }
+    [JsonPropertyName("login")]
+    public string? Login { get; set; }
 }
 
 public class Repository
 {
-    public string? name { get; set; }
-    public string? description { get; set; }
-    public string? updatedAt { get; set; }
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+
+    [JsonPropertyName("updatedAt")]
+    public string? UpdatedAt { get; set; }
 }

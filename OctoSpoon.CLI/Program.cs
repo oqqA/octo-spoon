@@ -4,81 +4,115 @@ namespace OctoSpoon.CLI
 {
     internal class Program
     {
-        private static async Task Main(string[] args)
+        private static async Task Main()
         {
             Console.InputEncoding = Encoding.Unicode;
             Console.OutputEncoding = Encoding.Unicode;
 
-            var settingsRepository = new SettingsRepository();
-            var settings = settingsRepository.Get();
-
-            if (settings.Token == null || !await isTokenValid(settings.Token))
-            {
-                do
-                {
-                    settings.Token = ConsoleManager.Request("Please create and input github token:\r\n---> https://github.com/settings/tokens \r\n(Select access -> read:discussion)");
-
-                    if (await isTokenValid(settings.Token))
-                        break;
-                    else
-                        Console.WriteLine("\nERROR: Bad token");
-
-                } while (true);
-
-                settingsRepository.Save(settings);
-            }
+            var token = await GetToken();
+            using var githubRepository = new GithubRepository(token);
 
             // todo: print last activity 
 
-            var githubRepository = new GithubRepository(settings.Token);
+            var author = await GetAuthor(githubRepository);
+            var nameRepository = await GetNameRepository(githubRepository, author);
+            var numberDiscussion = await GetNumberDiscussion(githubRepository, author, nameRepository);
 
-            string? author;
-            List<Repository>? repositories;
+            // todo: save last activity 
+            // SettingsRepository.SaveCache(author, nameRepository, numberDiscussion);
+
+            var randomComments = await GetRandomComments(githubRepository, author, nameRepository, numberDiscussion);
+
+            foreach (var comment in randomComments)
+            {
+                Console.WriteLine($"\n---> Author: {comment?.Author?.Login} \r\n\n {comment?.Body?.Trim()}");
+            }
+
+            Console.WriteLine("\nThanks, goodbye!");
+        }
+
+        private static async Task<string> GetToken()
+        {
+            var token = GithubRepository.GetToken();
+
+            while (!await GithubRepository.IsValidToken(token ?? ""))
+            {
+                if (token != null)
+                {
+                    Console.WriteLine("\nERROR: Bad token");
+                }
+
+                token = ConsoleManager.Request("""
+                Please create and input github token:
+                ---> https://github.com/settings/tokens 
+                (Select access -> read:discussion)
+                """);
+            }
+
+            return token ?? "";
+        }
+
+        private static async Task<string> GetAuthor(GithubRepository githubRepository)
+        {
+            string author;
+            Repository[] repositories;
             do
             {
                 author = ConsoleManager.Request("Please input author:");
                 repositories = await githubRepository.GetRepositories(author);
-            } while (repositories == null || repositories.Count == 0);
+            } while (repositories.Length == 0);
 
-            var repositoriesOrderBy = repositories.OrderByDescending(x => DateTime.Parse(x.updatedAt));
-            var selectorRepositories = repositoriesOrderBy?.Select(p => p.name + ((p.description != null) ? " - " + p.description : ""));
-            var indexRepository = ConsoleManager.SelectorRequest(selectorRepositories.ToArray(), "Please select repositories:");
-
-
-            var discussions = await githubRepository.GetDiscussions(author, repositoriesOrderBy.ToList()[indexRepository].name);
-            var selectorDiscussions = discussions?.Select(p => p.title);
-            var selectedIndex = ConsoleManager.SelectorRequest(selectorDiscussions.ToArray(), "Please select discussion:");
-
-
-            var comments = await githubRepository.GetComments(author, repositoriesOrderBy.ToList()[indexRepository].name, discussions[selectedIndex].number);
-            var selectorComments = comments.Select(p => p.body);
-            // ConsoleManager.SelectorRequest(selectorComments.ToArray(), "Please select comments:");
-
-            var cache = new CachePathDuscussion()
-            {
-                Author = author,
-                RepositoryName = repositoriesOrderBy.ToList()[indexRepository].name,
-                DiscussionNumber = discussions[selectedIndex].number
-            };
-            settings.CachePathsToDiscussions.Add(cache);
-            settingsRepository.Save(settings);
-
-            var randomCount = ConsoleManager.RequestNumber(comments.Count, $"Found {comments.Count} comments, please input count random comments you need:");
-            var takenComments = comments.OrderBy(x => new Random().Next()).Take(randomCount);
-
-            foreach (var node in takenComments)
-            {
-                Console.WriteLine($"\n---> Author: {node.author.login} \r\n\n {node.body.Trim()}");
-            }
-
-            Console.WriteLine("\nGoodbye, World!");
+            return author;
         }
 
-        public static async Task<bool> isTokenValid(string token)
+        private static async Task<string> GetNameRepository(GithubRepository githubRepository, string author)
         {
-            var tempGithubRepository = new GithubRepository(token);
-            var tempRepositories = await tempGithubRepository.GetRepositories("github");
-            return tempRepositories != null;
+            var repositories = (await githubRepository.GetRepositories(author))
+                .OrderByDescending(x => DateTime.Parse(x.UpdatedAt ?? ""))
+                .ToArray(); ;
+
+            var selectorRepositories = repositories
+                .Select(p => p.Name + ((p.Description != null) ? " - " + p.Description : ""))
+                .ToArray();
+
+            var indexRepository = ConsoleManager.SelectorRequest(
+                "Please select repositories:",
+                selectorRepositories
+            );
+
+            return repositories[indexRepository]?.Name ?? "";
+        }
+
+        private static async Task<int> GetNumberDiscussion(GithubRepository githubRepository, string author, string nameRepository)
+        {
+            var discussions = await githubRepository.GetDiscussions(author, nameRepository);
+
+            var selectorDiscussions = discussions
+                .Select(p => p.Title ?? "")
+                .ToArray();
+
+            var selectedIndex = ConsoleManager.SelectorRequest(
+                "Please select discussion:",
+                selectorDiscussions);
+
+            return discussions[selectedIndex].Number;
+        }
+
+        private static async Task<CommentNode[]> GetRandomComments(GithubRepository githubRepository, string author, string nameRepository, int numberDiscussion)
+        {
+            var comments = await githubRepository.GetComments(author, nameRepository, numberDiscussion);
+
+            var randomCount = ConsoleManager.RequestNumber(
+                $"Found {comments.Length} comments, please input count random comments you need:",
+                comments.Length
+            );
+
+            var randomComments = comments
+                .OrderBy(x => new Random().Next())
+                .Take(randomCount)
+                .ToArray();
+
+            return randomComments;
         }
     }
 }

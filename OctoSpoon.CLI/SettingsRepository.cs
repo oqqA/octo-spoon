@@ -6,30 +6,50 @@ namespace OctoSpoon.CLI
     {
         private const string FileName = "settings.json";
 
-        public bool Save(Settings newSettings)
+        public static bool Save(Settings newSettings)
         {
+
             var json = JsonSerializer.Serialize(newSettings, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(FileName, json);
+
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var path = Path.Combine(baseDirectory, FileName);
+            File.WriteAllText(path, json);
 
             return true;
         }
 
-        public Settings Get()
+        public static Settings Get()
         {
             var settings = new Settings();
 
-            if (File.Exists(FileName))
-            {
-                var json = File.ReadAllText(FileName);
-                settings = JsonSerializer.Deserialize<Settings>(json);
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var path = Path.Combine(baseDirectory, FileName);
 
+            if (File.Exists(path))
+            {
+                var json = File.ReadAllText(path);
+                settings = JsonSerializer.Deserialize<Settings>(json) ?? new Settings();
             }
             else
             {
-                settings.CachePathsToDiscussions = new List<CachePathDuscussion>();
+                settings.CachePathsToDiscussions = new List<CachePathDiscussion>();
             }
 
             return settings;
+        }
+
+        public static void SaveCache(string author, string nameRepository, int numberDiscussion)
+        {
+            var cache = new CachePathDiscussion()
+            {
+                Author = author,
+                RepositoryName = nameRepository,
+                DiscussionNumber = numberDiscussion
+            };
+
+            var settings = Get() ?? new Settings();
+            settings?.CachePathsToDiscussions?.Add(cache);
+            Save(settings ?? new Settings());
         }
     }
 }

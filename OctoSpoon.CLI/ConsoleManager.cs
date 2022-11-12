@@ -17,7 +17,7 @@ static class ConsoleManager
         return text;
     }
 
-    public static int RequestNumber(int maxNum, string? printText = null)
+    public static int RequestNumber(string printText, int maxNum)
     {
         if (printText != null)
             Console.WriteLine("\n" + printText);
@@ -32,7 +32,7 @@ static class ConsoleManager
         return selected;
     }
 
-    public static int SelectorRequest(string[] selector, string? printText = null)
+    public static int SelectorRequest(string printText, string[] selector)
     {
         var maxIndex = selector.Length > 5 ? 5 : selector.Length;
 
